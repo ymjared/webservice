@@ -1,0 +1,43 @@
+{
+  "app_name": "科蓝移动金融",
+  "chains": {
+    "startup": [
+      "main.page_launcher"
+    ]
+  },
+  "prefetch_interval": 600,
+  "repos": {
+    "main": {
+      "alg": "aes256cfb",
+      "key": "Q1NJSSBrZXkgZXhhbXBsZQ==",
+      "name": "主仓库",
+      "url": "./main/repo.dat"
+    }
+  },
+  "tls_server": {
+    "bindca": "false",
+    "ca": []
+  },
+  "hosts": {
+    "allowed": [
+      "https://mob.csii.com.cn/"
+    ],
+    "map": {
+      "/Integration/": "http://115.182.90.212:9993/Integration/",
+      "/gift/": "http://198.1.241.213:10004/portal/",
+      "/pmobile/": "http://10.1.1.185:8081/weex/",
+      "/portal/gift/": "http://198.1.241.213:10004/portal/"
+    },
+    "trusted": [
+      "https://demo.madp.tech/debugger/",
+      "http://115.182.90.215:10030",
+      "http://10.1.1.169:8088"
+    ]
+  },
+  "app_info": {
+    "app_id": "default",
+    "app_secretkey": "bb511bd6ce3d111b",
+    "behavior_url": "",
+    "client_id": "csii"
+  }
+}

@@ -7,14 +7,22 @@ import (
 	"net/http"
 )
 
+var requestCount int
+
 func main() {
 	person := model.NewPerson()
 	person.Showtime()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Main: Accept requrst", r.URL.String())
+		requestCount++
+		log.Println("Main: Accept requrst", r.URL.String(), requestCount)
+		w.Header().Add("Cache-Control", "no-store")
 		w.Write([]byte("Welcome you..."))
 	})
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
 	http.Handle("/person", person)
 
 	log.Println("http://127.0.0.1:8889/")
