@@ -217,3 +217,7 @@ func Test8(t *testing.T) {
 	}
 	log.Printf("hosts:%s", hosts)
 }
+
+func Test9(t *testing.T) {
+	fmt.Println("test9")
+}
