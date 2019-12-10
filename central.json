@@ -35,7 +35,7 @@
     ]
   },
   "app_info": {
-    "app_id": "default",
+    "app_id": "defaults",
     "app_secretkey": "bb511bd6ce3d111b",
     "behavior_url": "",
     "client_id": "csii"
