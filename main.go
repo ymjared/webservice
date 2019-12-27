@@ -1,21 +1,29 @@
 package main
 
 import (
+	"fmt"
 	"github.com/webservice/api"
+	clog "github.com/webservice/example/log"
 	"github.com/webservice/model"
-	"log"
 	"net/http"
+	"time"
 )
 
 var requestCount int
+var Logger *clog.Logger
+
+func init() {
+	Logger = clog.CreateLogger()
+}
 
 func main() {
+	Logger.Log(time.Now().String())
 	person := model.NewPerson()
 	person.Showtime()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
-		log.Println("Main: Accept requrst", r.URL.String(), requestCount)
+		Logger.Log(fmt.Sprintln("Main: Accept requrst", r.URL.String(), requestCount))
 		w.Header().Add("Cache-Control", "no-store")
 		w.Write([]byte("Welcome you..."))
 	})
@@ -25,6 +33,6 @@ func main() {
 
 	http.Handle("/person", person)
 
-	log.Println("http://127.0.0.1:8889/")
+	Logger.Log(fmt.Sprintln("http://127.0.0.1:8889/"))
 	api.CheckErr(http.ListenAndServe(":8889", nil))
 }

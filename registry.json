@@ -1,0 +1,51 @@
+{
+  "central_url": "https://demo.madp.tech/debugger/central.dat",
+  //中心服务器配置文件url地址
+  "central_alg": "aes256cfb",
+  //中心服务器配置文件加密算法
+  "central_key": "Q1NJSSBrZXkgZXhhbXBsZQ==",
+  //中心服务器配置文件加密密钥
+  "gray_url":"https://demo.madp.tech/debugger/gray.dat",
+  //灰度发布配置文件url地址
+  "gray_alg":"aes256cfb",
+  //灰度发布配置文件加密算法
+  "gray_key":"Q1NJSSBrZXkgZXhhbXBsZQ==",
+  //灰度发布配置文件加密密钥
+  "securestore_alg": "aes256cfb",
+  //安全存储文件加密算法
+  "securestore_key": "Q1NJSSBrZXkgZXhhbXBsZQ==",
+  //安全存储文件加密密钥
+  "timesync_url": "https://demo.madp.tech/timestamp",
+  //客户端同步服务端时间url地址
+  "skipverify": "false",
+  //客户端是否检验服务端证书合法性
+  "tls_server": {
+    "bindca": "true",
+    //客户端是否使用系统信任根证书
+    //true:客户端放弃使用系统信任的根证书，仅使用用户配置的根证书校验服务端证书合法性
+    //false:客户端使用系统信任的根证书和用户配置的根证书校验服务端证书合法性
+    "ca": [
+      //用户配置的根证书，数组结构，可以配置多个，一个有效即可
+      "MIIFmzCCA4OgAwIBAgIJAMfZWb3e/IzYMA0GCSqGSIb3DQEBBQUAMIGBMQswCQYD",
+      "MIIFmzCCA4OgAwIBAgIJAMfZWb3e/IzYMA0GCSqGSIb3DQEBBQUAMIGBMQswCQYD"
+    ]
+  },
+  "tls_client": {
+    //配置客户端证书，在双向https认证的时候提供证书给服务端检验
+    "certs": [
+      //证书是数组结构，可以配置多个
+      {
+        "cert": "MIIFmzCCA4OgAwIBAgIJAMfZWb3e/IzYMA0GCSqGSIb3DQEBBQUAMIGBMQswCQYD",
+        //客户端提供的ssl证书
+        "key": "MIIJKQIBAAKCAgEA1SvYZbP7V6VNYMEu2tpyEYny+jyVhsOmbHzTIhh2PWU64ZR8"
+        //客户端提供的ssl证书对应的私钥文件
+      },
+      {
+        "cert": "MIIFmzCCA4OgAwIBAgIJAMfZWb3e/IzYMA0GCSqGSIb3DQEBBQUAMIGBMQswCQYD",
+        //客户端提供的ssl证书
+        "key": "MIIJKQIBAAKCAgEA1SvYZbP7V6VNYMEu2tpyEYny+jyVhsOmbHzTIhh2PWU64ZR8"
+        //客户端提供的ssl证书对应的私钥文件
+      }
+    ]
+  }
+}

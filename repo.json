@@ -1,0 +1,80 @@
+{
+    "url": "./",
+    //仓库静态资源文件访问url相对路径前缀
+    //如上配置：
+    //中心服务器配置文件 url: https://demo.madp.tech/debugger/central.dat
+    //仓库配置文件 url: https://demo.madp.tech/debugger/main/repo.dat
+    //那么静态资源url路径前缀为: https://demo.madp.tech/debugger/main/
+
+    //假设前端请求 https://127.0.0.1:34023/weex/index.weex.js -> https://demo.madp.tech/debugger/main/weex/index.weex.js
+    //移动应用开发平台对静态资源发布会进行加密，文件名进行hash
+    //weex/index.weex.js -> 7685d595c8170ded41da7b47af3b5a45b0553ee6fe1a4579328f06d4506a17af.dat
+    //因此实际worker请求web静态资源服务器的地址应为:
+    //https://demo.madp.tech/debugger/main/7685d595c8170ded41da7b47af3b5a45b0553ee6fe1a4579328f06d4506a17af.dat
+    "stages": {
+        //根据功能具体划分的场景，可配置多个场景
+        "helloworld": {
+            //场景ID
+            "name": "Hello World",
+            //场景名称
+            "module": "weex",
+            //配置场景使用什么架构进行加载
+            //web 表示用 web 引擎进行加载，可加载 html 或者 vx
+            //weex 表示用 weex 引擎进行加载
+            "path": "./helloworld/index.js",
+            //对应前端源码文件地址，可以为相对路径，也可以是绝对路径
+            //如上: 当前端调用context LaunchStage("helloworld")方法启动该场景时，
+            //worker返回客户端event事件，path为: https://127.0.0.1:34023/helloworld/index.js
+            //然后客户端打开新页面并且交由前端渲染容器开始渲染页面
+            "params": {
+                //自定义的场景参数
+                "x-fullscreen":"yes",
+                //yes: 使用充满全屏的设定
+                //no: 不适用全屏设定
+                "duration":"5"
+                //表示闪屏倒计时间隔(该场景不需要，只是举例)
+            },
+            "auth_check": ["sub !=''|login?text=请先登录"]
+            //进入该场景的验证配置 该字段为一个数组，空数组代表该场景不设校验
+            //格式如下: 条件表达式 | 场景地址
+            //如上: 表示检验worker内存中存储的token claim[sub] 是否为空
+            //如果为空：需要先进行登录才能启动helloworld，否则直接启动helloworld场景
+        }
+    },
+    "resource_rules": {
+        //静态资源配置规则
+        "alg":"aes256cfb",
+        //移动应用开发平台发布静态资源加密文件算法
+        "key":"Q1NJSSBrZXkgZXhhbXBsZQ==",
+        //移动应用开发平台发布静态资源加密文件算法密钥
+        "fnkey":"csii-fn-key",
+        //移动应用开发平台发布静态资源是否需要对文件名进行hash处理
+        //如上: weex/index.weex.js -> 7685d595c8170ded41da7b47af3b5a45b0553ee6fe1a4579328f06d4506a17af.dat
+        "repo_includes": [],
+        //移动应用开发平台配置部分静态资源文件发布到web服务器上
+        "repo_excludes": ["^repo.json$", "^repo.dat$", "\.DS_Store$", "\.go$", "^\.svn", "^\.git"],
+        //移动应用开发平台除了配置项包含的静态资源文件其余都发布到web服务器上
+        "bundle_includes": [],
+        //移动应用开发平台配置部分静态资源文件打包压缩供客户端离线使用，配置此参数可降低离线包大小
+        "bundle_excludes": [],
+        //移动应用开发平台除了配置项包含的静态资源文件其余都打包压缩供客户端离线使用，配置此参数可降低离线包大小
+        "prefetch_includes": [],
+        //配置worker后台静默预加载部分静态资源文件，数组格式，支持正则表达式
+        //关于具体如何配置可参考文档 <<MADP2.0预加载参数配置说明.docx>>
+        "prefetch_excludes": [],
+        //配置worker除了配置项包含的静态资源文件其余都后台静默预加载，数组格式，支持正则表达式
+        "prefetch_interval": 5,
+        //worker预加载时间间隔，单位秒
+        //如果配置: 0 那么只会在启动的时候进行一次预加载
+        //生产环境: <=300 默认300秒轮询一次
+        "cache_includes": [],
+        //配置worker部分静态资源文件优先使用客户端本地缓存
+        //如果本地没有找到缓存文件，在从web服务器请求，成功请求到后会同时在本地缓存一份供下次使用
+        "cache_excludes": ["\.do$", "\.do\\?"],
+        //配置worker部分资源文件放弃使用本地缓存，直接请求web服务器上的资源
+        "cache_ttl": 72
+        //此配置项目前暂未使用
+
+        //上面include/excludes配置项是相互互斥的，假如配置了include,那么excludes配置的参数将忽略
+    }
+}

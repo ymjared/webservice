@@ -1,21 +1,27 @@
 package test
 
 import (
+	"bufio"
 	"bytes"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"github.com/buger/jsonparser"
-	"golang.org/x/net/publicsuffix"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
-	"net/http/cookiejar"
+	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 	"testing"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 //数组是值传递，对参数数组操作不会改变原数组的值
@@ -84,11 +90,12 @@ var netTransport = &http.Transport{
 	MaxIdleConnsPerHost: 10,
 	MaxIdleConns:        200,
 }
-var netCookiejar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+
+//var netCookiejar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 var netClient = &http.Client{
 	Timeout:   time.Second * 60,
 	Transport: netTransport,
-	Jar:       netCookiejar,
+	//Jar:       netCookiejar,
 	CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	},
@@ -219,5 +226,250 @@ func Test8(t *testing.T) {
 }
 
 func Test9(t *testing.T) {
-	fmt.Println("test9")
+	registry, err := ioutil.ReadFile("../registry.json")
+	if err != nil {
+		log.Println(err)
+	}
+	jsonparser.ArrayEach(registry, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		certdata, err := jsonparser.GetString(value, "cert")
+		if err != nil {
+			log.Println("Mutual Auth/2-Way SSL: Failed to parse client certificate: " + err.Error())
+			return
+		}
+		keydata, err := jsonparser.GetString(value, "key")
+		if err != nil {
+			log.Println("Mutual Auth/2-Way SSL: Failed to parse client private key: " + err.Error())
+			return
+		}
+		fmt.Println("cert:", certdata)
+		fmt.Println("key:", keydata)
+	}, "tls_client", "certs")
+}
+
+func Test10(t *testing.T) {
+	central := "http://127.0.0.1:9088/preview/central.dat"
+	repoconf := "./main/repo.dat"
+	repourlconf := "./"
+
+	centralurl, _ := url.Parse(central)
+	repourl, _ := url.Parse(repoconf)
+	repodatUrl := centralurl.ResolveReference(repourl)
+	fmt.Println("repo.dat: ", repodatUrl.String())
+
+	repourlconfurl, _ := url.Parse(repourlconf)
+	fmt.Println("repo resource: ", repodatUrl.ResolveReference(repourlconfurl).String())
+
+}
+
+func Test11(t *testing.T) {
+	rule := `\.do\\?`
+	examples := []string{`cockpit/vendor/deryrr/framework7/cssframework7.ios.min.css`}
+
+	r, err := regexp.Compile(rule)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, example := range examples {
+		if r.MatchString(example) {
+			fmt.Println(example)
+		}
+	}
+}
+
+func Test12(t *testing.T) {
+	path := "weex/financeProducts.weex.js"
+	salt := "csii-fn-key"
+	target := fmt.Sprintf("%x.dat", sha256.Sum256([]byte(salt+path+salt)))
+	if target == "f6b518e915b775490846fe952bf78272fbd83c95933d2356446221467991b068.dat" {
+		fmt.Println("ok")
+	}
+}
+
+func Test13(t *testing.T) {
+	dbpath := "./ss.dat"
+	key := "_ENV"
+	dat, err := ioutil.ReadFile(dbpath)
+	if err != nil {
+		log.Println("Secure Store: Getting key " + key + err.Error())
+		return
+	}
+	str, err := jsonparser.GetString(dat, key)
+	if err != nil {
+		log.Println("Secure Store: Getting key " + key + err.Error())
+		return
+	}
+	fmt.Println(str)
+}
+
+func Test14(t *testing.T) {
+	http.Handle("/", http.FileServer(http.Dir("../")))
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
+}
+
+type Weapon int
+
+const (
+	shouqiang Weapon = iota
+	dapao
+	feiji
+	huojian
+)
+
+func Test15(t *testing.T) {
+	fmt.Println(shouqiang)
+	fmt.Println(dapao)
+	fmt.Println(feiji)
+	fmt.Println(huojian)
+}
+
+func (w Weapon) String() string {
+	switch w {
+	case shouqiang:
+		return "shouqiang"
+	case dapao:
+		return "dapao"
+	case feiji:
+		return "feiji"
+	case huojian:
+		return "huojian"
+	}
+	return ""
+}
+
+func Test16(t *testing.T) {
+	src := make([]int, 10)
+	copySrc := make([]int, 10)
+
+	for i := 0; i < 10; i++ {
+		src[i] = i + 1
+	}
+	//引用类型
+	refSrc := src
+	//复制
+	copy(copySrc, src)
+	src[0] = 100
+	fmt.Println("src:", src)
+	fmt.Println("refSrc:", refSrc)
+	fmt.Println("copySrc:", copySrc)
+
+	match, err := filepath.Glob("./*")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(match)
+
+	baseName := filepath.Base("/a/b/c/e.txt")
+	fmt.Println(baseName)
+
+	e := filepath.Ext("/Users/1.txt")
+	fmt.Println(e)
+	s := "i i"
+	fmt.Println(utf8.RuneCountInString(s))
+
+	notALetter := func(char rune) bool {
+		return unicode.IsLetter(char)
+	}
+	fmt.Println(len(strings.FieldsFunc(s, notALetter)), strings.FieldsFunc(s, notALetter))
+
+	gap := 10 + 5 - len("Word") - len("Frequency")
+	fmt.Printf("Word %*s%s\n", gap, " ", "Frequency")
+}
+
+type Invoke interface {
+	Call(interface{})
+}
+
+//定义函数类型
+type FuncCaller func(interface{})
+
+func (f FuncCaller) Call(p interface{}) {
+	f(p)
+}
+
+//回调函数
+func Test17(t *testing.T) {
+	var data int
+	var funcCaller Invoke
+	callBack(10, func(i interface{}) {
+		data = i.(int)
+	})
+	fmt.Println("callback: ", data)
+
+	funcCaller = FuncCaller(func(i interface{}) {
+		data = i.(int)
+	})
+
+	funcCaller.Call(20)
+	fmt.Println("funcCall: ", data)
+}
+
+func callBack(d int, f FuncCaller) {
+	f(d)
+}
+
+//内存缓存
+const LIM = 41
+
+var fibs [LIM]uint64
+
+func Test19(t *testing.T) {
+	var result uint64 = 0
+	start := time.Now()
+	for i := 1; i < LIM; i++ {
+		result = fibonacci3(i)
+		fmt.Printf("数列第 %d 位: %d\n", i, result)
+	}
+	end := time.Now()
+	delta := end.Sub(start)
+	fmt.Printf("程序的执行时间为: %s\n", delta)
+}
+func fibonacci3(n int) (res uint64) {
+	// 记忆化：检查数组中是否已知斐波那契（n）
+	if fibs[n] != 0 {
+		res = fibs[n]
+		return
+	}
+	if n <= 2 {
+		res = 1
+	} else {
+		res = fibonacci3(n-1) + fibonacci3(n-2)
+	}
+	fibs[n] = res
+	return
+}
+
+func Test20(t *testing.T) {
+	data := []byte("golang")
+	br := bytes.NewReader(data)
+	bufr := bufio.NewReader(br)
+	var target [256]byte
+	n, err := bufr.Read(target[:])
+	fmt.Println(string(target[:n]), n, err)
+}
+
+type Driver interface {
+	Run()
+}
+type Driver1 interface {
+	Run()
+}
+
+type Car struct {
+	Name string
+}
+
+func (c Car) Run() {
+	fmt.Println("Car: Run")
+}
+
+func Test21(t *testing.T) {
+	var ei interface{}
+	ei = Car{}
+	di := ei.(Driver)
+	di.Run()
+	di = ei.(Driver1)
+	di.Run()
 }

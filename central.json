@@ -1,43 +1,88 @@
 {
-  "app_name": "科蓝移动金融",
-  "chains": {
-    "startup": [
-      "main.page_launcher"
-    ]
-  },
-  "prefetch_interval": 600,
-  "repos": {
-    "main": {
-      "alg": "aes256cfb",
-      "key": "Q1NJSSBrZXkgZXhhbXBsZQ==",
-      "name": "主仓库",
-      "url": "./main/repo.dat"
-    }
-  },
-  "tls_server": {
-    "bindca": "false",
-    "ca": []
-  },
-  "hosts": {
-    "allowed": [
-      "https://mob.csii.com.cn/"
-    ],
-    "map": {
-      "/Integration/": "http://115.182.90.212:9993/Integration/",
-      "/gift/": "http://198.1.241.213:10004/portal/",
-      "/pmobile/": "http://10.1.1.185:8081/weex/",
-      "/portal/gift/": "http://198.1.241.213:10004/portal/"
+    "app_name":"科蓝移动金融",
+    //主要用于检验中心服务器配置文件是否有效
+    "prefetch_interval": 10,
+    //轮询中心服务器配置文件时间间隔，单位秒
+    //如果配置: 0 那么只会在启动的时候进行一次预加载
+    //生产环境: <=300 默认300秒轮询一次
+    "timesync_url": "https://demo.madp.tech/timestamp",
+    //客户端同步服务端时间url地址
+    //注册表也可以配置，优先使用中心服务器配置的url地址
+    "chains":{
+        //客户端启动链配置
+        "startup":["main.helloworld"],
+        //客户端启动调用的场景，支持配置多个场景，按配置顺序依次执行
+        //格式: ["仓库名.场景名","仓库名.场景名","仓库名.场景名"]
+        //如上：客户端启动会直接调用main仓库helloworld场景
+        "rule_vip":{
+            //启动链支持条件编译，针对多种规则执行不同的场景组合
+            "rule":"tokenClaimString('group')=='vip'",
+            //如上json可执行表达式，表示比较 token claim[group] 是否等于 'vip'
+            "startup":["main.helloworldvip"]
+            //如果条件成立，那么客户端启动执行的场景启动链动态切换为 main.helloworldvip
+            //具体配置可以参考文档 <<MADP2.0配置文件灰度规则.docx>>
+        }
     },
-    "trusted": [
-      "https://demo.madp.tech/debugger/",
-      "http://115.182.90.215:10030",
-      "http://10.1.1.169:8088"
-    ]
-  },
-  "app_info": {
-    "app_id": "defaults",
-    "app_secretkey": "bb511bd6ce3d111b",
-    "behavior_url": "",
-    "client_id": "csii"
-  }
+    "repos":{
+        //配置仓库配置文件信息，支持配置多个仓库，每个仓库为一个json object
+        "main":{
+            //仓库ID
+            "name":"主仓库",
+            //仓库名称
+            "url":"./main/repo.dat",
+            //仓库配置文件url地址
+            //如果配置的相对路径，那么仓库配置文件完整url路径以中心服务器配置文件url路径前缀补充
+            //如上配置：
+            //中心服务器配置文件url为 https://demo.madp.tech/debugger/central.dat，
+            //那么仓库配置文件url为 https://demo.madp.tech/debugger/main/repo.dat
+            "alg":"aes256cfb",
+            //仓库配置文件加密算法
+            "key":"Q1NJSSBrZXkgZXhhbXBsZQ=="
+            //仓库配置文件加密密钥
+        }
+    },
+    "hosts":{
+        //主机映射相关配置
+        "trusted":["https://demo.madp.tech/debugger/","https://mob.csii.com.cn/"],
+        //worker转发请求到trusted配置项配置的主机时，会在请求头加上服务端返回的token信息
+        "allowed":["//demo.madp.tech/",".csii.com.cn"],
+        //针对交易端口，如果worker转发的主机地址不在trusted和allowed配置项中，将取消本次请
+        //worker在客户端本地开启了2个监听端口，每次启动端口都会随机生成
+        //交易端口:
+        //通过context对象ProxyGetAddress()方法，可获得交易端口地址
+        //资源端口:
+        //请求静态资源文件，主机映射都是请求的资源端口
+        //资源端口在启动场景时worker会将端口地址通过event事件传递到客户端及前端使用
+        "map":{
+            //为解决跨域问题而配置的主机映射关系
+            "/pmobile/":"https://demo-gateway.madp.tech:8443/pmobile/",
+            //worker 会把以 /pmobile/ 为前缀的url请求路径转发到 https://demo-gateway.madp.tech:8443/pmobile/ 主机上
+            //比如：
+            //http://127.0.0.1:34908/pmobile/login.do --> https://demo-gateway.madp.tech:8443/pmobile/login.do
+            "/test/":{
+                //worker在转发请求时可以对请求报文进行加密处理
+                "url":"https://test27-9443.hyxfjr.com/xfjr-pweb/",
+                //目标主机地址
+                "alg":"aes256",
+                //报文加密采用的加密算法
+                "key":"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCmWnRIyw46GQS32nFoH9Oh4YC2HBrxao6bMRmPxGt1q6TH13jgxMkbopDMvsSvkthtiWnDt0DLstdssaWFsIhB/W1wDbJSq3dP5KqWB2DgcGozeApTZpBRVszjkx9aOwocPOdIXx/9FVsZmRXsBT+XjyneZcr3spqJgx1EBfd5hwIDAQAB",
+                //加密算法为aes256，那么key应该填写rsa公钥
+            },
+            "/pweb/":{
+                //worker在转发请求时可以对请求报文进行加密处理
+                "url":"https://test27-9443.hyxfjr.com/xfjr-pweb/",
+                //目标主机地址
+                "alg":"sm4",
+                //报文加密采用的加密算法
+                "key":"0893918276A53BCF4756655D803271897197A0A33090D4F953D8D709D06D5F78377C4F1BB5BE114718F57985C077751A5CFC47FA37E7E6A23CBBC4F696E1E316",
+                //加密算法为sm4，那么key应该填写sm2公钥
+            }
+        },
+        "redirect":{
+            //worker支持请求重定向
+            "/js/nxy/NXYJS.min.js":"/nxy/NXYJS.min.js"
+        }
+    }
 }
+
+//中心服务器配置文件也支持配置服务端和客户端证书，跳过证书校验，配置方式和注册表配置一样，如果都配置以中心服务器配置优先使用
